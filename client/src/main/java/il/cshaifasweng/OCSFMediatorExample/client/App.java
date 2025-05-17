@@ -7,6 +7,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -21,15 +22,23 @@ public class App extends Application {
 
     private static Scene scene;
     private SimpleClient client;
+    private SecondaryController controller;
+    private PrimaryController primaryController;
 
     @Override
     public void start(Stage stage) throws IOException {
-    	EventBus.getDefault().register(this);
-    	client = SimpleClient.getClient();
-    	client.openConnection();
-        scene = new Scene(loadFXML("primary"), 640, 480);
+        EventBus.getDefault().register(this);
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("primary.fxml"));
+        Parent root = loader.load();
+        primaryController = loader.getController();
+        primaryController.setApp(this);
+        scene = new Scene(root,600,480);
         stage.setScene(scene);
         stage.show();
+    }
+
+    public void setClient(SimpleClient client) {
+        this.client = client;
     }
 
     static void setRoot(String fxml) throws IOException {
@@ -40,32 +49,51 @@ public class App extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
         return fxmlLoader.load();
     }
-    
-    
 
     @Override
-	public void stop() throws Exception {
-		// TODO Auto-generated method stub
-    	EventBus.getDefault().unregister(this);
+    public void stop() throws Exception {
+        // TODO Auto-generated method stub
+        EventBus.getDefault().unregister(this);
         client.sendToServer("remove client");
         client.closeConnection();
-		super.stop();
-	}
-    
-    @Subscribe
-    public void onWarningEvent(WarningEvent event) {
-    	Platform.runLater(() -> {
-    		Alert alert = new Alert(AlertType.WARNING,
-        			String.format("Message: %s\nTimestamp: %s\n",
-        					event.getWarning().getMessage(),
-        					event.getWarning().getTime().toString())
-        	);
-        	alert.show();
-    	});
-    	
+        super.stop();
     }
 
-	public static void main(String[] args) {
+    @Subscribe
+    public void onWarningEvent(WarningEvent event) {
+        Platform.runLater(() -> {
+            try {
+                if ("ready".equals(event.getWarning().getMessage())) {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("secondary.fxml"));
+
+                    // Use controller factory to inject the client
+                    loader.setControllerFactory(param -> new SecondaryController(client));
+
+                    Parent root = loader.load(); // This triggers controller creation
+
+                    // Now it's safe to get the controller
+                    this.controller = loader.getController();
+
+                    client.setSecondaryController(controller);
+                    scene.setRoot(root);
+                }
+                if(event.getWarning().getMessage().contains("wins")){
+                    client.setTurn(false);
+                    controller.getStatusLabel().setText(event.getWarning().getMessage());
+                }
+                else if(event.getWarning().getMessage().contains("turn")){
+                    controller.getStatusLabel().setText(event.getWarning().getMessage());
+                }
+                else if (event.getWarning().getMessage().contains("tie")) {
+                    controller.getStatusLabel().setText(event.getWarning().getMessage());
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public static void main(String[] args) {
         launch();
     }
 

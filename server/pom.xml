@@ -24,6 +24,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20231013</version> <!-- or latest version -->
+		</dependency>
+		<dependency>
 			<groupId>${groupId}</groupId>
 			<artifactId>entities</artifactId>
 		</dependency>
