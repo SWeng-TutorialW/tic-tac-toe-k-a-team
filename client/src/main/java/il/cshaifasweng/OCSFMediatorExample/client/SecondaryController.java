@@ -33,11 +33,6 @@ public class SecondaryController {
     }
 
     @FXML
-    private void switchToPrimary() throws IOException {
-        App.setRoot("primary");
-    }
-
-    @FXML
     public void initialize(){
         createBoard();
         markLabel.setFont(new Font("Arial", 18));

@@ -11,7 +11,7 @@ import java.io.IOException;
 public class SimpleClient extends AbstractClient {
 
 	private static SimpleClient client = null;
-	private boolean Myturn;
+	private boolean isMyturn;
 	private String notation;
 	private SecondaryController controller;
 
@@ -22,10 +22,10 @@ public class SimpleClient extends AbstractClient {
 		this.controller = controller;
 	}
 	public void setTurn(boolean turn) {
-		this.Myturn = turn;
+		this.isMyturn = turn;
 	}
-	public boolean Myturn() {
-		return Myturn;
+	public boolean isMyturn() {
+		return isMyturn;
 	}
 	public String getNotation() {
 		return notation;
@@ -46,7 +46,7 @@ public class SimpleClient extends AbstractClient {
 				this.notation = "O";
 			}
 			if(message.equals("your turn")){
-				this.Myturn = true;
+				this.isMyturn = true;
 				Platform.runLater(()-> {
 					controller.getStatusLabel().setText("your turn");
 				});
